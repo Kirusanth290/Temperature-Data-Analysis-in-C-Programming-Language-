@@ -1,0 +1,240 @@
+/* CPS 188 Term Project
+Members:
+Kirusanth Palakanthan- Section 08)
+Yin Lee Assang - Section 06)
+Michael Jantzi -Section 07)
+Aden Tsegay - Section 05) */
+
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+#define MAX_LINE_LENGTH 1024
+#define Max_Line_Len 1000
+#define START_YR 1760
+#define END_YR 2015
+#define MAX_MONTHS 12
+#define START_YEAR 1801
+#define END_YEAR 2000
+#define MAX_YEARS (END_YEAR - START_YEAR + 1)
+#define MAX_MONTHS 12
+#define START_YR_Q8 1850
+#define END_YEAR_19TH 1899
+#define START_YEAR_20TH 1900
+#define END_YEAR_20TH 1999
+#define START_YEAR_21ST 2000
+#define END_YEAR_21ST 2015
+
+const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
+
+
+//Function used to convert the dates in the first column into years
+int convert_date_to_year_1st_column(char *date){
+  int year;
+  sscanf(date, "%d-", &year); //only extracts an integer value followed by a hyphen
+  return year;
+
+ //The following variables are used in order to keep track of the year being processed
+  int current_yr=START_YR;
+  int count=0;
+  double sum=0.0;
+  double hottest_temp = -1000.0; // Initializing with a very low temperature
+  double coldest_temp = 1000.0;  // Initializing with a very high temperature
+  int hottest_year = START_YR;
+  int coldest_year = START_YR;
+  char hottest_month[20];
+  char coldest_month[20];
+  float hottest_temperature = 0;
+  float coldest_temperature = 100;
+
+
+   int main(){
+ FILE *temperatureFile;
+    temperatureFile = fopen("GlobalTemperatures.csv", "r");
+    if (!temperatureFile) {
+        printf("Cannot open file!\n");
+        return 1;
+    }
+
+
+    printf("Welcome to the Term Project Program!\n");
+
+    printf("\nQuestion 1\n\n");
+    // Find the land temperature average between 1760 - 2015
+
+    int monthCounter = 0, yearIndex = 0;
+    char lineBuffer[MAX_LINE_LENGTH];
+    char *dateToken, *monthlyAvgToken, *yearToken;
+    double monthlyAvgValue, yearlySum = 0, yearlyAverages[256] = {0}; // Adjusted size to 256 to match years range
+
+    // Skip the header line
+    fgets(lineBuffer, MAX_LINE_LENGTH, temperatureFile);
+
+    while (fgets(lineBuffer, MAX_LINE_LENGTH, temperatureFile) != NULL) {
+        // Split the line into tokens
+        dateToken = strtok(lineBuffer, ",");
+        monthlyAvgToken = strtok(NULL, ",");
+        // Extract year from the date
+        yearToken = strtok(dateToken, "-");
+
+        // Check if the year is within the desired range
+        if (atoi(yearToken) >= 1760) {
+            if (monthlyAvgToken != NULL) {
+                monthlyAvgValue = atof(monthlyAvgToken);
+                yearlySum += monthlyAvgValue;
+                monthCounter++;
+            }
+        }
+
+        // If all months in a year have been processed
+        if (monthCounter == 12) {
+            yearlyAverages[yearIndex] = yearlySum / 12;
+            yearIndex++;
+            monthCounter = 0;
+            yearlySum = 0;
+        }
+    }
+
+    fclose(temperatureFile);
+
+    // Print the results
+    printf("   Year     Avg Temp(C*)\n   ----     ----------\n");
+    for (int i = 0; i < yearIndex; i++) {
+        printf("   %d    %lf\n", 1760 + i, yearlyAverages[i]);
+    }
+
+printf("\nQuestion 2\n\n");
+
+
+
+    int numberOfYearsInCentury = 0;
+    int centuryIndex = 0;
+    double centurySum = 0;
+    double centuryAverageTemperatures[3]; // Adjust the size based on expected number of centuries
+
+    printf("Century    AverageTemperature\n");
+    for (int year = 1760; year <= 2016; year++) {
+        if (year % 100 == 0 || year == 2016) {
+            if (numberOfYearsInCentury > 0) { // Prevent division by zero
+                centurySum /= numberOfYearsInCentury;
+                centuryAverageTemperatures[centuryIndex] = centurySum;
+
+                printf("%d-%d   %lf \n", year - numberOfYearsInCentury, year - 1, centuryAverageTemperatures[centuryIndex]);
+
+                centuryIndex++;
+            }
+            numberOfYearsInCentury = 0;
+            centurySum = 0;
+        }
+        centurySum += yearlyAverages[year - 1760];
+        numberOfYearsInCentury++;
+    }
+
+  double avgTemperature[12];
+    char monthNames[][MAX_LINE_LENGTH] = {{"January"}, {"February"}, {"March"}, {"April"}, {"May"}, {"June"}, {"July"}, {"August"}, {"September"}, {"October"}, {"November"}, {"December"}};
+
+    printf("\nQuestion 3\n\n");
+
+    int count = 0;
+    FILE *file;
+    char temp[MAX_LINE_LENGTH], *token,*monthlyAvg, *year;
+
+    file = fopen("GlobalTemperatures.csv", "r");
+
+    do {
+        // Skipping the first line
+        fgets(temp, MAX_LINE_LENGTH, file);
+
+    // Split the line at the commas	
+    token = strtok(temp, ",");
+    monthlyAvg = strtok(NULL, ",");
+    // Split the token at the dashes to get the year
+    if (token != NULL) {
+    year = strtok(token, "-");
+    if (year != NULL && atoi(year) >= 1900) {
+        if (monthlyAvg != NULL) {
+            avgTemperature[count] += atof(monthlyAvg);
+            count++;
+        }
+    }
+}
+        if (count == 12) {
+            count = 0;
+        }
+    } while (!(feof(file)));
+
+    fclose(file);
+
+    for (int i = 0; i < 12; i++) {
+        avgTemperature[i] /= 116;
+    }
+
+    printf("Month      Avg Temp\n-----      -----\n");
+    for (int i = 0; i < 12; i++) {
+        printf("%-9s % 6.3lf \n", &monthNames[i][0], avgTemperature[i]);
+    }
+
+      printf("\n\nQuestion 4\n\n");
+
+
+    file = fopen("GlobalTemperatures.csv", "r");
+    double htemperature = -99, ctemperature = 100;
+    int hyear, cyear,hmonth,cmonth;
+
+
+
+  do {
+    fgets(temp,MAX_LINE_LENGTH,file);
+    // Split the line at the commas
+    token = strtok(temp,",");
+    // Get the 2nd comma delimit value which is the monhtly average
+    monthlyAvg = strtok(NULL,",");
+    // Split the line at the dashes to get the year
+    year = strtok(token,"-"); 
+    // Convert the year to a int and check its alteast 1960
+    if ( atoi(year) >= 1760){
+      if (monthlyAvg != NULL){
+        // Set a count to correspond to each month
+          count ++;
+          /* If the current monthly avg is greater than
+           * the hottest temperature set that temperature
+           * as the new hottest temperaute 
+           * and take note of the  month year in which it occured*/
+          if (atof(monthlyAvg) > htemperature) {
+            htemperature = atof(monthlyAvg);
+            hyear = atoi(year);
+            hmonth = count;
+          }
+            /* If the current monthly avg is less than
+           * the coldest temperature set that temperature
+           * as the new coldest temperaute 
+           * and take note of the  month year in which it occured*/
+          if (atof(monthlyAvg) < ctemperature) {
+            ctemperature = atof(monthlyAvg);
+            cyear = atoi(year);
+            cmonth = count;
+          }
+      }
+      }
+    // Reset the month counter if the month goes past 11(december)a
+    if (count == 12){
+      count = 0;
+    }
+    }while (!(feof(file)));
+
+    fclose(file);
+
+    // Print the results
+    printf("Hottest Month: %-9s%d  Temperature: %lf\n",&months[hmonth-1][0],hyear, htemperature);
+    printf("Coldest Month: %-9s%d  Temperature: %lf\n",&months[cmonth-1][0],cyear, ctemperature);
+
+}
+
+    return 0;
+}
+
+   
